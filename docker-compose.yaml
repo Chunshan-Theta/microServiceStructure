@@ -1,0 +1,51 @@
+version: "3.7"
+services:
+    redis:
+        build:
+            context: ./redis_server/
+            dockerfile: Dockerfile
+        image: redis_dummy
+        container_name: redis
+        restart: always
+        expose:
+            - 6379
+        ports:
+          - "6379:6379"
+    api_server:
+        build:
+            context: ./api_server
+            dockerfile: Dockerfile
+        image: api_server
+        container_name: api_server-svr1
+        restart: always
+        volumes:
+          - "./LocalStorage-api:/app/LocalStorage"
+        depends_on:
+          - redis
+        ports:
+          - "8081:8081"
+        environment:
+            REDIS_HOST: "redis"
+            REDIS_PORT: "6379"
+            PYTHONUNBUFFERED: 1
+
+    mdl_server:
+        build:
+            context: ./mdl_server
+            dockerfile: Dockerfile
+        image: mdl_server
+        container_name: mdl_server-svr1
+        restart: always
+        volumes:
+          - "./LocalStorage-mdl:/app/LocalStorage"
+        depends_on:
+          - redis
+        ports:
+          - "8088:8088"
+        environment:
+            REDIS_HOST: "redis"
+            REDIS_PORT: "6379"
+            PYTHONUNBUFFERED: 1
+networks:
+  main:
+    driver: bridge
